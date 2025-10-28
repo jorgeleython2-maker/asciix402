@@ -1,8 +1,7 @@
-// config.js — CAMBIA SOLO EL MINT
+// config.js — CAMBIA SOLO EL MINT DEL TOKEN
 module.exports = {
   TOKEN_MINT: 'CYtHzg3shYXcaLjhq6vHRPv31Bf91pGm7wsNScYTpump', // ← TU TOKEN AQUÍ
-  POOL: 'pump', // ← Fuerza Raydium para compras seguras
-  PUMP_API_KEY: 'd4rprgtg5ctm8ka7b9134vuean44wubp61bpacvqdcrkama2edc5mrj3d1qm2rjc89u5cchmcrr76mu4e5h36xa5axbqadhpb96k6rk7dxw68tb5e513gebt75p78gja5xcngcb384yku7185jvuqe9gmgh1tb94qcnu18mb9tqjmutc9aq0e1k6dx4yx2fath6gxk461kkuf8',
+  PUMP_API_KEY: '9x7pwjube5wq0tagf5r34nb169mkjc9bdxj34v9m6n97ghk1a90n6x3ma58ppu37ct4q6j3qdthm2kbgb9gq8gk3cnb6pnhr6wt7mp33a59njt3p8d7k0e3nb1w4jrvm88nq8pauewyku9x77jka6adcpge1g8x2m2kad84e9nk6m3tegun6gtpcgt5crjmd4npajumcnvkuf8',
   SOL_TO_SPEND: 0.5,
-  X_HANDLE: 'TU_USUARIO_X'
+  X_HANDLE: 'TU_USUARIO_X' // ← Opcional
 };

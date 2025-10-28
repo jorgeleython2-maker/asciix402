@@ -1,14 +1,18 @@
+// api/buy-and-save.js
 const fetch = require('node-fetch');
-const fs = require('fs');
+const low = require('lowdb');
+const FileSync = require('lowdb/adapters/FileSync');
 const { PUMP_API_KEY, SOL_TO_SPEND, TOKEN_MINT } = require('../config');
 
 module.exports = async (req, res) => {
   const { ascii, wallet } = req.body;
-  if (!ascii || !wallet || !TOKEN_MINT) return res.status(400).json({ error: 'Missing data' });
+  if (!ascii || !wallet || !TOKEN_MINT) {
+    return res.status(400).json({ error: 'Missing data or TOKEN_MINT' });
+  }
 
   try {
+    const tradeUrl = `https://pumpportal.fun/api/trade?api-key=${PUMP_API_KEY}&cluster=mainnet`;
     const trade = {
-      publicKey: wallet,
       action: 'buy',
       mint: TOKEN_MINT,
       amount: Math.floor(SOL_TO_SPEND * 1e9),
@@ -18,19 +22,17 @@ module.exports = async (req, res) => {
       pool: 'auto'
     };
 
-    const response = await fetch(`https://pumpportal.fun/api/trade-local?api-key=${PUMP_API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(trade)
-    });
+    const response = await fetch(tradeUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(trade) });
     const result = await response.json();
     if (result.error) throw new Error(result.error);
 
-    const txBase64 = result.tx;
+    const adapter = new FileSync('/tmp/db.json');
+    const db = low(adapter);
+    db.defaults({ ascii: [] }).write();
     const id = Date.now().toString(36);
-    fs.writeFileSync(`/tmp/${id}.json`, JSON.stringify({ id, ascii, tx: txBase64, wallet }));
+    db.get('ascii').push({ id, ascii, wallet, tx: result.signature, mint: TOKEN_MINT }).write();
 
-    res.json({ success: true, txBase64, id });
+    res.json({ success: true, downloadUrl: `/api/download?id=${id}` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
