@@ -1,14 +1,12 @@
 const fetch = require('node-fetch');
+const fs = require('fs');
 const { PUMP_API_KEY, SOL_TO_SPEND, TOKEN_MINT } = require('../config');
 
 module.exports = async (req, res) => {
   const { ascii, wallet } = req.body;
-  if (!ascii || !wallet || !TOKEN_MINT) {
-    return res.status(400).json({ error: 'Missing data' });
-  }
+  if (!ascii || !wallet) return res.status(400).json({ error: 'Missing' });
 
   try {
-    const tradeUrl = `https://pumpportal.fun/api/trade?api-key=${PUMP_API_KEY}&cluster=mainnet`;
     const trade = {
       action: 'buy',
       mint: TOKEN_MINT,
@@ -19,15 +17,16 @@ module.exports = async (req, res) => {
       pool: 'auto'
     };
 
-    const response = await fetch(tradeUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(trade) });
+    const response = await fetch(`https://pumpportal.fun/api/trade?api-key=${PUMP_API_KEY}&cluster=mainnet`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(trade)
+    });
     const result = await response.json();
     if (result.error) throw new Error(result.error);
 
     const id = Date.now().toString(36);
-    // Guarda en file temporal (para Vercel)
-    const fs = require('fs');
-    const entry = { id, ascii, wallet, tx: result.signature, mint: TOKEN_MINT };
-    fs.writeFileSync(`/tmp/${id}.json`, JSON.stringify(entry));
+    fs.writeFileSync(`/tmp/${id}.json`, JSON.stringify({ id, ascii, tx: result.signature }));
 
     res.json({ success: true, downloadUrl: `/api/download?id=${id}` });
   } catch (err) {
