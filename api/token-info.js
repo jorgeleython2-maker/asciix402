@@ -6,53 +6,61 @@ module.exports = async (req, res) => {
   let liveData = {
     ticker: 'UNKNOWN',
     price: '$0.00000000',
-    marketCap: 'Detecting last created token...',
+    marketCap: 'Detecting last Pump.fun trade...',
     volume24h: '$0',
     lastMint: null
   };
 
   try {
-    // 1. Obtener transacciones recientes (últimas 20)
     const url = `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`;
-    const payload1 = {
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'getSignaturesForAddress',
-      params: [DEV_WALLET, { limit: 20 }]
-    };
-    const txRes = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload1) });
-    const txData = await txRes.json();
+    
+    // 1. Obtener firmas recientes
+    const sigRes = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'getSignaturesForAddress',
+        params: [DEV_WALLET, { limit: 20 }]
+      })
+    });
+    const sigData = await sigRes.json();
 
-    if (!txData.result || txData.result.length === 0) {
-      liveData.marketCap = 'No transactions found';
+    if (!sigData.result || sigData.result.length === 0) {
+      liveData.marketCap = 'No transactions';
       return res.json(liveData);
     }
 
-    const signatures = txData.result.map(sig => sig.signature);
+    const signatures = sigData.result.map(s => s.signature);
 
-    // 2. Obtener detalles
-    const payload2 = {
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'getParsedTransactions',
-      params: [signatures, { encoding: 'jsonParsed', commitment: 'confirmed' }]
-    };
-    const detailsRes = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload2) });
-    const detailsData = await detailsRes.json();
+    // 2. Obtener detalles de tx
+    const txRes = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'getParsedTransactions',
+        params: [signatures, { encoding: 'jsonParsed', commitment: 'confirmed' }]
+      })
+    });
+    const txData = await txRes.json();
 
-    // 3. Buscar creación de token (initializeMint o createTokenAccount)
+    // 3. Buscar último trade en Pump.fun
+    const PUMP_PROGRAM = '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P';
     let lastMint = null;
-    for (const tx of detailsData.result || []) {
-      if (tx && tx.transaction && tx.transaction.message && tx.transaction.message.instructions) {
-        for (const instr of tx.transaction.message.instructions) {
-          if (instr.programId === 'TokenkegQfeZyiNwAJbNbGKLsK' && instr.parsed && instr.parsed.type === 'initializeMint') {
-            lastMint = instr.parsed.info.mint;
-            break;
-          }
-          // Alternativa: createTokenAccount
-          if (instr.programId === 'TokenkegQfeZyiNwAJbNbGKLsK' && instr.parsed && instr.parsed.type === 'create') {
-            lastMint = instr.parsed.info.mint;
-            break;
+
+    for (const tx of txData.result || []) {
+      if (tx && tx.meta && tx.meta.logMessages) {
+        for (const log of tx.meta.logMessages) {
+          // Pump.fun logs: "Program 6EF8... invoke [1]" y luego "Mint: <mint>"
+          if (log.includes(PUMP_PROGRAM)) {
+            const mintMatch = tx.meta.logMessages.find(l => l.includes('Mint: '));
+            if (mintMatch) {
+              lastMint = mintMatch.split('Mint: ')[1].split(' ')[0];
+              break;
+            }
           }
         }
         if (lastMint) break;
@@ -60,7 +68,7 @@ module.exports = async (req, res) => {
     }
 
     if (!lastMint) {
-      liveData.marketCap = 'No token creation found';
+      liveData.marketCap = 'No Pump.fun trade found';
       return res.json(liveData);
     }
 
@@ -81,7 +89,7 @@ module.exports = async (req, res) => {
         lastMint: lastMint
       };
     } else {
-      liveData.marketCap = `Mint detected: ${lastMint.slice(0,8)}...`;
+      liveData.marketCap = `Mint: ${lastMint.slice(0,8)}...`;
       liveData.lastMint = lastMint;
     }
   } catch (err) {

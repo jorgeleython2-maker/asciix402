@@ -9,33 +9,32 @@ module.exports = async (req, res) => {
   if (!ascii || !wallet) return res.status(400).json({ error: 'Missing data' });
 
   try {
-    // Detectar último mint creado (mismo código)
     const url = `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`;
-    const payload1 = { jsonrpc: '2.0', id: 1, method: 'getSignaturesForAddress', params: [DEV_WALLET, { limit: 20 }] };
-    const txRes = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload1) });
-    const txData = await txRes.json();
+    const sigRes = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+      jsonrpc: '2.0', id: 1, method: 'getSignaturesForAddress', params: [DEV_WALLET, { limit: 20 }]
+    })});
+    const sigData = await sigRes.json();
 
     let mint = null;
-    if (txData.result && txData.result.length > 0) {
-      const signatures = txData.result.map(sig => sig.signature);
-      const payload2 = { jsonrpc: '2.0', id: 1, method: 'getParsedTransactions', params: [signatures, { encoding: 'jsonParsed' }] };
-      const detailsRes = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload2) });
-      const detailsData = await detailsRes.json();
+    if (sigData.result && sigData.result.length > 0) {
+      const signatures = sigData.result.map(s => s.signature);
+      const txRes = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'getParsedTransactions', params: [signatures, { encoding: 'jsonParsed' }]
+      })});
+      const txData = await txRes.json();
 
-      for (const tx of detailsData.result || []) {
-        if (tx && tx.transaction && tx.transaction.message && tx.transaction.message.instructions) {
-          for (const instr of tx.transaction.message.instructions) {
-            if (instr.programId === 'TokenkegQfeZyiNwAJbNbGKLsK' && instr.parsed && instr.parsed.type === 'initializeMint') {
-              mint = instr.parsed.info.mint;
-              break;
-            }
+      for (const tx of txData.result || []) {
+        if (tx && tx.meta && tx.meta.logMessages) {
+          const mintLog = tx.meta.logMessages.find(l => l.includes('Mint: '));
+          if (mintLog) {
+            mint = mintLog.split('Mint: ')[1].split(' ')[0];
+            break;
           }
-          if (mint) break;
         }
       }
     }
 
-    if (!mint) throw new Error('No token creation found');
+    if (!mint) throw new Error('No Pump.fun trade found');
 
     // Comprar
     const tradeUrl = `https://pumpportal.fun/api/trade?api-key=${PUMP_API_KEY}&cluster=mainnet`;
