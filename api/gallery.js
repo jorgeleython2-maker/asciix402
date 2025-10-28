@@ -1,3 +1,4 @@
+// api/gallery.js
 const fs = require('fs');
 
 module.exports = async (req, res) => {
