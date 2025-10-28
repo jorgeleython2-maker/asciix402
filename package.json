@@ -8,6 +8,10 @@
   "dependencies": {
     "express": "^4.18.2",
     "node-fetch": "2.6.7",
-    "lowdb": "1.0.0"
+    "lowdb": "1.0.0",
+    "@vercel/kv": "^1.1.0",
+    "canvas": "^2.11.2",
+    "solders": "^0.18.1",
+    "bs58": "^5.0.0"
   }
 }

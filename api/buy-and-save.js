@@ -1,8 +1,12 @@
 // api/buy-and-save.js
 const fetch = require('node-fetch');
-const low = require('lowdb');
-const FileSync = require('lowdb/adapters/FileSync');
-const { PUMP_API_KEY, SOL_TO_SPEND, TOKEN_MINT, POOL } = require('../config');
+const Redis = require('@upstash/redis');
+const { PUMP_API_KEY, SOL_TO_SPEND, TOKEN_MINT } = require('../config');
+
+const redis = new Redis({
+  url: process.env.KV_URL,
+  token: process.env.KV_REST_API_TOKEN
+});
 
 module.exports = async (req, res) => {
   const { ascii, wallet } = req.body;
@@ -14,25 +18,25 @@ module.exports = async (req, res) => {
     const tradeUrl = `https://pumpportal.fun/api/trade?api-key=${PUMP_API_KEY}&cluster=mainnet`;
     const trade = {
       action: 'buy',
-      mint: TOKEN_MINT, // ← Usa el mint de config.js
+      mint: TOKEN_MINT,
       amount: Math.floor(SOL_TO_SPEND * 1e9),
       denominatedInSol: 'true',
       slippage: 20,
       priorityFee: 0.0001,
-      pool: POOL // ← Pool correcto
+      pool: 'auto'
     };
 
     const response = await fetch(tradeUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(trade) });
     const result = await response.json();
     if (result.error) throw new Error(result.error);
 
-    const adapter = new FileSync('/tmp/db.json');
-    const db = low(adapter);
-    db.defaults({ ascii: [] }).write();
     const id = Date.now().toString(36);
-    db.get('ascii').push({ id, ascii, wallet, tx: result.signature, mint: TOKEN_MINT }).write();
+    const entry = { id, ascii, wallet, tx: result.signature, mint: TOKEN_MINT };
 
-    res.json({ success: true, downloadUrl: `/api/download?id=${id}&format=jpg` }); // ← Redirige a JPG
+    // GUARDA EN UPSTASH
+    await redis.set(`ascii:${id}`, JSON.stringify(entry));
+
+    res.json({ success: true, downloadUrl: `/api/download?id=${id}&format=jpg` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
