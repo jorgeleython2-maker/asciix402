@@ -1,30 +1,17 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ASCII ART Studio - Create & Mint</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --primary: #10b981;
-      --primary-dark: #059669;
-      --primary-light: #6ee7b7;
-      --bg-dark: #0f172a;
-      --bg-darker: #020617;
-      --bg-card: #1e293b;
-      --text-primary: #f1f5f9;
-      --text-secondary: #cbd5e1;
-      --border: #334155;
-      --accent: #06b6d4;
+      --primary: #10b981; --primary-dark: #059669; --primary-light: #6ee7b7;
+      --bg-dark: #0f172a; --bg-darker: #020617; --bg-card: #1e293b;
+      --text-primary: #f1f5f9; --text-secondary: #cbd5e1; --border: #334155; --accent: #06b6d4;
     }
-
     body {
       font-family: 'Inter', sans-serif;
       background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
@@ -32,8 +19,6 @@
       line-height: 1.6;
       min-height: 100vh;
     }
-
-    /* HEADER */
     header {
       background: rgba(15, 23, 42, 0.8);
       backdrop-filter: blur(10px);
@@ -43,7 +28,6 @@
       top: 0;
       z-index: 100;
     }
-
     .header-container {
       max-width: 1200px;
       margin: 0 auto;
@@ -51,13 +35,11 @@
       align-items: center;
       justify-content: space-between;
     }
-
     .logo-section {
       display: flex;
       align-items: center;
       gap: 1rem;
     }
-
     .logo-placeholder {
       width: 48px;
       height: 48px;
@@ -70,7 +52,6 @@
       font-size: 24px;
       color: white;
     }
-
     .logo-text h1 {
       font-size: 24px;
       font-weight: 700;
@@ -79,41 +60,33 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-
     .logo-text p {
       font-size: 12px;
       color: var(--text-secondary);
       font-weight: 500;
     }
-
     .header-right {
       display: flex;
       align-items: center;
       gap: 2rem;
     }
-
     #status {
       font-size: 14px;
       font-weight: 500;
       color: var(--text-secondary);
     }
-
     #status.connected {
       color: var(--primary);
     }
-
-    /* MAIN CONTAINER */
     main {
       max-width: 1200px;
       margin: 0 auto;
       padding: 3rem 2rem;
     }
-
     .hero {
       text-align: center;
       margin-bottom: 4rem;
     }
-
     .hero h2 {
       font-size: 3rem;
       font-weight: 700;
@@ -123,14 +96,11 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-
     .hero p {
       font-size: 1.1rem;
       color: var(--text-secondary);
       margin-bottom: 2rem;
     }
-
-    /* TOKEN INFO */
     #tokenInfo {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -140,19 +110,15 @@
       text-align: center;
       backdrop-filter: blur(10px);
     }
-
     #tokenInfo strong {
       color: var(--primary);
       font-size: 1.2rem;
     }
-
     #tokenInfo small {
       color: var(--primary-light);
       display: block;
       margin-top: 0.5rem;
     }
-
-    /* WALLET SECTION */
     .wallet-section {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -161,21 +127,17 @@
       margin-bottom: 3rem;
       text-align: center;
     }
-
     .wallet-section h3 {
       font-size: 1.1rem;
       margin-bottom: 1rem;
       color: var(--text-primary);
     }
-
     #walletAddress {
       font-family: 'JetBrains Mono', monospace;
       color: var(--primary);
       font-size: 0.95rem;
       margin-top: 1rem;
     }
-
-    /* BUTTONS */
     button {
       padding: 0.75rem 1.5rem;
       font-weight: 600;
@@ -186,25 +148,19 @@
       transition: all 0.3s ease;
       font-family: 'Inter', sans-serif;
     }
-
     #connectBtn {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: white;
-      margin: 0 0.5rem;
     }
-
     #connectBtn:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
     }
-
     #connectBtn:disabled {
       background: var(--border);
       cursor: not-allowed;
       opacity: 0.5;
     }
-
-    /* EDITOR SECTION */
     .editor-section {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -212,13 +168,11 @@
       padding: 2rem;
       margin-bottom: 3rem;
     }
-
     .editor-section h3 {
       font-size: 1.1rem;
       margin-bottom: 1rem;
       color: var(--text-primary);
     }
-
     textarea {
       width: 100%;
       height: 250px;
@@ -230,51 +184,38 @@
       padding: 1rem;
       font-size: 13px;
       resize: vertical;
-      transition: all 0.3s ease;
     }
-
     textarea:focus {
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
     }
-
-    textarea::placeholder {
-      color: var(--text-secondary);
-    }
-
     .editor-actions {
       display: flex;
       gap: 1rem;
       margin-top: 1.5rem;
       justify-content: center;
     }
-
     #buyBtn {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: white;
       padding: 1rem 2rem;
       font-size: 1.05rem;
     }
-
     #buyBtn:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 12px 24px rgba(16, 185, 129, 0.3);
     }
-
     #buyBtn:disabled {
       background: var(--border);
       cursor: not-allowed;
       opacity: 0.5;
     }
-
-    /* RESULT */
     #result {
       margin: 2rem 0;
       min-height: 20px;
       text-align: center;
     }
-
     #result p {
       padding: 1rem;
       border-radius: 8px;
@@ -282,18 +223,14 @@
       border: 1px solid var(--primary);
       color: var(--primary);
     }
-
     #result p.error {
       background: rgba(239, 68, 68, 0.1);
       border-color: #ef4444;
       color: #fca5a5;
     }
-
-    /* GALLERY */
     .gallery-section {
       margin-top: 4rem;
     }
-
     .gallery-section h2 {
       font-size: 2rem;
       margin-bottom: 2rem;
@@ -303,14 +240,12 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-
     .gallery {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 1.5rem;
       margin-bottom: 3rem;
     }
-
     .gallery-item {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -318,13 +253,11 @@
       padding: 1.5rem;
       transition: all 0.3s ease;
     }
-
     .gallery-item:hover {
       border-color: var(--primary);
       box-shadow: 0 8px 16px rgba(16, 185, 129, 0.1);
       transform: translateY(-4px);
     }
-
     .gallery-item pre {
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
@@ -337,38 +270,30 @@
       border-radius: 6px;
       overflow-x: auto;
     }
-
     .gallery-item small {
       display: block;
       margin-top: 1rem;
       color: var(--text-secondary);
       font-size: 0.85rem;
     }
-
     .gallery-item a {
       color: var(--primary);
       text-decoration: none;
       font-weight: 600;
-      transition: color 0.3s ease;
     }
-
     .gallery-item a:hover {
       color: var(--accent);
     }
-
-    /* SOCIAL */
     .social-section {
       text-align: center;
       padding: 3rem 0;
       border-top: 1px solid var(--border);
       margin-top: 3rem;
     }
-
     .social-section h3 {
       margin-bottom: 1.5rem;
       color: var(--text-primary);
     }
-
     .social-btn {
       background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
       color: white;
@@ -380,39 +305,17 @@
       font-weight: 600;
       transition: all 0.3s ease;
     }
-
     .social-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 16px rgba(6, 182, 212, 0.3);
     }
-
-    /* RESPONSIVE */
     @media (max-width: 768px) {
-      .hero h2 {
-        font-size: 2rem;
-      }
-
-      .header-container {
-        flex-direction: column;
-        gap: 1rem;
-      }
-
-      .header-right {
-        width: 100%;
-        justify-content: space-between;
-      }
-
-      .gallery {
-        grid-template-columns: 1fr;
-      }
-
-      .editor-actions {
-        flex-direction: column;
-      }
-
-      #buyBtn {
-        width: 100%;
-      }
+      .hero h2 { font-size: 2rem; }
+      .header-container { flex-direction: column; gap: 1rem; }
+      .header-right { width: 100%; justify-content: space-between; }
+      .gallery { grid-template-columns: 1fr; }
+      .editor-actions { flex-direction: column; }
+      #buyBtn { width: 100%; }
     }
   </style>
 </head>
@@ -423,7 +326,7 @@
       <div class="logo-section">
         <div class="logo-placeholder">◆</div>
         <div class="logo-text">
-          <h1>ASCIIx402</h1>
+          <h1>ASCII ART Studio</h1>
           <p>Create & Mint on Solana</p>
         </div>
       </div>
@@ -436,23 +339,19 @@
 
   <!-- MAIN -->
   <main>
-    <!-- HERO -->
     <section class="hero">
       <h2>Create ASCII Art NFTs</h2>
-      <p>Transform your ASCII art into x402-verified NFTs. Pay 0.5 SOL and mint your creation instantly.</p>
+      <p>Turn your ASCII art into verified NFTs. Pay 0.5 SOL and mint instantly.</p>
     </section>
 
-    <!-- TOKEN INFO -->
-    <div id="tokenInfo">Loading live data...</div>
+    <div id="tokenInfo">Detecting token from wallet...</div>
 
-    <!-- WALLET -->
     <div class="wallet-section">
       <h3>Wallet Connection</h3>
       <p id="walletAddress"></p>
     </div>
 
-    <!-- EDITOR -->
-    <div class="editor-section">
+    <div class="editor舟-section">
       <h3>Paste Your ASCII Art</h3>
       <textarea id="asciiInput" placeholder="Paste your ASCII art here..."></textarea>
       <div class="editor-actions">
@@ -461,23 +360,21 @@
       <div id="result"></div>
     </div>
 
-    <!-- GALLERY -->
     <section class="gallery-section">
       <h2>Community Gallery</h2>
       <div id="gallery" class="gallery"></div>
     </section>
 
-    <!-- SOCIAL -->
     <section class="social-section">
       <h3>Follow Us</h3>
-      <a href="https://x.com/TU_USUARIO" target="_blank" class="social-btn">
+      <a href="https://x.com/TU_USUARIO_X" target="_blank" class="social-btn" id="xLink">
         Follow on X
       </a>
     </section>
   </main>
 
   <script>
-    // === POLLING: ACTUALIZACIÓN CADA 15s (FUNCIONA EN VERCEL) ===
+    // === DATOS EN VIVO ===
     async function loadTokenInfo() {
       try {
         const res = await fetch('/api/token-info');
@@ -485,14 +382,17 @@
         const el = document.getElementById('tokenInfo');
         el.innerHTML = `
           <strong>${data.ticker}</strong> • MC: ${data.marketCap} • Price: ${data.price}
-          ${data.lastTrade ? `<br><small>${data.lastTrade}</small>` : ''}
         `;
+        // Actualiza botón de X si existe
+        const xLink = document.getElementById('xLink');
+        if (data.xHandle) {
+          xLink.href = `https://x.com/${data.xHandle}`;
+          xLink.textContent = `Follow @${data.xHandle} on X`;
+        }
       } catch (err) {
         console.error('Token info error:', err);
       }
     }
-
-    // Carga inicial + cada 15s
     loadTokenInfo();
     setInterval(loadTokenInfo, 15000);
 
@@ -507,7 +407,6 @@
     let provider = null;
     let wallet = null;
 
-    // === DETECTAR PHANTOM ===
     function detect() {
       if ('phantom' in window && window.phantom?.solana?.isPhantom) {
         provider = window.phantom.solana;
@@ -521,7 +420,6 @@
       }
     }
 
-    // === CONECTAR WALLET ===
     connectBtn.onclick = async () => {
       if (!provider) return alert('Install Phantom');
       try {
@@ -536,7 +434,6 @@
       }
     };
 
-    // === CARGAR GALERÍA ===
     async function loadGallery() {
       try {
         const res = await fetch('/api/gallery');
@@ -552,7 +449,6 @@
       }
     }
 
-    // === COMPRAR Y CREAR ===
     buyBtn.onclick = async () => {
       if (!wallet) return alert('Connect wallet first');
       const ascii = document.getElementById('asciiInput').value.trim();
@@ -570,40 +466,36 @@
         const data = await res.json();
 
         if (data.success) {
-          result.innerHTML = '<p>✓ NFT created successfully!</p>';
+          result.innerHTML = '<p>NFT created successfully!</p>';
           loadGallery();
           setTimeout(() => {
             window.location.href = data.downloadUrl;
           }, 1000);
         } else {
-          result.innerHTML = `<p class="error">✗ ${data.error}</p>`;
+          result.innerHTML = `<p class="error">${data.error}</p>`;
         }
       } catch (err) {
-        result.innerHTML = `<p class="error">✗ Network error: ${err.message}</p>`;
+        result.innerHTML = `<p class="error">Network error: ${err.message}</p>`;
       } finally {
         buyBtn.disabled = false;
         buyBtn.textContent = 'Pay 0.5 SOL & Create NFT';
       }
     };
 
-    // === INICIO ===
     window.addEventListener('load', () => {
       detect();
       loadGallery();
       setInterval(loadGallery, 10000);
-
       if (provider) {
-        provider.connect({ onlyIfTrusted: true })
-          .then(resp => {
-            if (resp.publicKey) {
-              wallet = resp.publicKey.toString();
-              walletAddressEl.textContent = `Connected: ${wallet.slice(0,6)}...${wallet.slice(-4)}`;
-              connectBtn.textContent = 'Disconnect';
-              buyBtn.disabled = false;
-              loadGallery();
-            }
-          })
-          .catch(() => {});
+        provider.connect({ onlyIfTrusted: true }).then(resp => {
+          if (resp.publicKey) {
+            wallet = resp.publicKey.toString();
+            walletAddressEl.textContent = `Connected: ${wallet.slice(0,6)}...${wallet.slice(-4)}`;
+            connectBtn.textContent = 'Disconnect';
+            buyBtn.disabled = false;
+            loadGallery();
+          }
+        }).catch(() => {});
       }
     });
   </script>
