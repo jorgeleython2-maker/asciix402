@@ -19,7 +19,7 @@ module.exports = async (req, res) => {
       denominatedInSol: 'true',
       slippage: 20,
       priorityFee: 0.0001,
-      pool: POOL // ← Fuerza el pool correcto
+      pool: POOL // ← Pool correcto
     };
 
     const response = await fetch(tradeUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(trade) });
