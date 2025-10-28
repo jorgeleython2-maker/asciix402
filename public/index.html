@@ -150,6 +150,13 @@
         const rpcData = await rpcRes.json();
         if (rpcData.error) throw new Error(rpcData.error.message);
 
+        // GUARDAR TX FIRMADA
+        await fetch('/api/save-tx', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: data.id, tx: rpcData.result })
+        });
+
         result.innerHTML = `
           <p>Success!</p>
           <p>TX: <a href="https://solscan.io/tx/${rpcData.result}" target="_blank">${rpcData.result.slice(0,8)}...</a></p>

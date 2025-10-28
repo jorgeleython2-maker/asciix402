@@ -1,4 +1,3 @@
-// api/token-info.js
 const fetch = require('node-fetch');
 const { TOKEN_MINT } = require('../config');
 

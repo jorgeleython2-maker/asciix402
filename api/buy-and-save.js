@@ -1,4 +1,3 @@
-// api/buy-and-save.js
 const fetch = require('node-fetch');
 const fs = require('fs');
 const { PUMP_API_KEY, SOL_TO_SPEND, TOKEN_MINT } = require('../config');
