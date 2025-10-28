@@ -1,6 +1,9 @@
+// api/gallery.js
 const fs = require('fs');
 module.exports = async (req, res) => {
   const dir = '/tmp';
-  const files = fs.readdirSync(dir).filter(f => f.endsWith('.json')).slice(-10).map(f => JSON.parse(fs.readFileSync(dir + '/' + f)));
-  res.json(files);
+  if (!fs.existsSync(dir)) return res.json([]);
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.json')).slice(-10);
+  const arts = files.map(f => JSON.parse(fs.readFileSync(`${dir}/${f}`)));
+  res.json(arts);
 };

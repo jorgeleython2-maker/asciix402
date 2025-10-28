@@ -1,10 +1,11 @@
+// api/buy-and-save.js
 const fetch = require('node-fetch');
 const fs = require('fs');
 const { PUMP_API_KEY, SOL_TO_SPEND, TOKEN_MINT } = require('../config');
 
 module.exports = async (req, res) => {
   const { ascii, wallet } = req.body;
-  if (!ascii || !wallet) return res.status(400).json({ error: 'Missing' });
+  if (!ascii || !wallet || !TOKEN_MINT) return res.status(400).json({ error: 'Missing data' });
 
   try {
     const trade = {
