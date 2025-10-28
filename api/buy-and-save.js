@@ -2,7 +2,7 @@
 const fetch = require('node-fetch');
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
-const { PUMP_API_KEY, SOL_TO_SPEND, TOKEN_MINT } = require('../config');
+const { PUMP_API_KEY, SOL_TO_SPEND, TOKEN_MINT, POOL } = require('../config');
 
 module.exports = async (req, res) => {
   const { ascii, wallet } = req.body;
@@ -14,12 +14,12 @@ module.exports = async (req, res) => {
     const tradeUrl = `https://pumpportal.fun/api/trade?api-key=${PUMP_API_KEY}&cluster=mainnet`;
     const trade = {
       action: 'buy',
-      mint: TOKEN_MINT,
+      mint: TOKEN_MINT, // ← Usa el mint de config.js
       amount: Math.floor(SOL_TO_SPEND * 1e9),
       denominatedInSol: 'true',
       slippage: 20,
       priorityFee: 0.0001,
-      pool: 'auto'
+      pool: POOL // ← Fuerza el pool correcto
     };
 
     const response = await fetch(tradeUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(trade) });
@@ -32,7 +32,7 @@ module.exports = async (req, res) => {
     const id = Date.now().toString(36);
     db.get('ascii').push({ id, ascii, wallet, tx: result.signature, mint: TOKEN_MINT }).write();
 
-    res.json({ success: true, downloadUrl: `/api/download?id=${id}` });
+    res.json({ success: true, downloadUrl: `/api/download?id=${id}&format=jpg` }); // ← Redirige a JPG
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

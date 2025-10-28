@@ -1,14 +1,14 @@
 {
-  "name": "ascii-pump",
+  "name": "ascii-art",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.21.2",
-    "lowdb": "^1.0.0",
-    "node-fetch": "^2.6.7",
-    "ws": "^8.18.3"
+    "express": "^4.18.2",
+    "node-fetch": "2.6.7",
+    "lowdb": "1.0.0",
+    "canvas": "^2.11.2"
   }
 }
