@@ -6,12 +6,13 @@ module.exports = async (req, res) => {
   let liveData = {
     ticker: 'UNKNOWN',
     price: '$0.00000000',
-    marketCap: 'Detecting token...',
+    marketCap: 'Loading...',
     volume24h: '$0',
     lastMint: null
   };
 
   try {
+    // 1. BitQuery para detectar mint
     const query = `
       query {
         Solana(network: solana) {
@@ -29,28 +30,39 @@ module.exports = async (req, res) => {
       }
     `;
 
-    const response = await fetch('https://graphql.bitquery.io', {
+    const bitRes = await fetch('https://graphql.bitquery.io', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-API-KEY': BITQUERY_API_KEY },
       body: JSON.stringify({ query })
     });
-    const data = await response.json();
+    const bitData = await bitRes.json();
 
     let mint = null;
-    if (data.data?.Solana?.Instructions?.[0]?.Instruction?.Accounts) {
-      mint = data.data.Solana.Instructions[0].Instruction.Accounts.find(a => a.Address.length === 44)?.Address;
+    if (bitData.data?.Solana?.Instructions?.[0]?.Instruction?.Accounts) {
+      mint = bitData.data.Solana.Instructions[0].Instruction.Accounts.find(a => a.Address.length === 44)?.Address;
     }
 
     if (!mint) {
-      liveData.marketCap = 'No token created recently';
+      liveData.marketCap = 'No token created';
       return res.json(liveData);
     }
 
-    // DexScreener
-    const dexRes = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`);
-    const dexData = await dexRes.json();
+    liveData.lastMint = mint;
 
-    if (dexData.pairs?.[0]) {
+    // 2. DexScreener con retry (3 intentos, 1s delay)
+    let dexData = null;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const dexRes = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`);
+        dexData = await dexRes.json();
+        if (dexData.pairs && dexData.pairs.length > 0) break;
+      } catch (err) {
+        console.error(`DexScreener attempt ${attempt} failed:`, err.message);
+        if (attempt < 3) await new Promise(r => setTimeout(r, 1000)); // 1s delay
+      }
+    }
+
+    if (dexData && dexData.pairs && dexData.pairs.length > 0) {
       const pair = dexData.pairs[0];
       const price = parseFloat(pair.priceUsd || 0);
       const fdv = parseFloat(pair.fdv || 0);
@@ -64,10 +76,9 @@ module.exports = async (req, res) => {
       };
     } else {
       liveData.marketCap = `Mint: ${mint.slice(0,8)}...`;
-      liveData.lastMint = mint;
     }
   } catch (err) {
-    console.error('Error:', err);
+    console.error('Overall error:', err);
     liveData.marketCap = 'API Error';
   }
 
