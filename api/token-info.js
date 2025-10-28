@@ -2,6 +2,14 @@
 const fetch = require('node-fetch');
 const { DEV_WALLET, BITQUERY_API_KEY } = require('../config');
 
+// Cache en memoria (Vercel serverless)
+let cache = {
+  mint: null,
+  data: null,
+  timestamp: 0
+};
+const CACHE_TTL = 60 * 1000; // 1 minuto
+
 module.exports = async (req, res) => {
   let liveData = {
     ticker: 'UNKNOWN',
@@ -12,34 +20,52 @@ module.exports = async (req, res) => {
   };
 
   try {
-    // 1. BitQuery para detectar mint
-    const query = `
-      query {
-        Solana(network: solana) {
-          Instructions(
-            where: {
-              Instruction: { Program: { Address: { is: "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P" } }, Method: { is: "create" } }
-              Transaction: { Signer: { is: "${DEV_WALLET}" } }
-            }
-            orderBy: { descendingByField: "Block_Time" }
-            limit: { count: 1 }
-          ) {
-            Instruction { Accounts { Address } }
-          }
-        }
-      }
-    `;
+    // 1. Usar cache si es reciente
+    if (cache.timestamp > Date.now() - CACHE_TTL && cache.mint) {
+      liveData = cache.data;
+      return res.json(liveData);
+    }
 
-    const bitRes = await fetch('https://graphql.bitquery.io', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-API-KEY': BITQUERY_API_KEY },
-      body: JSON.stringify({ query })
-    });
-    const bitData = await bitRes.json();
-
+    // 2. Detectar mint con BitQuery (retry 3 veces)
     let mint = null;
-    if (bitData.data?.Solana?.Instructions?.[0]?.Instruction?.Accounts) {
-      mint = bitData.data.Solana.Instructions[0].Instruction.Accounts.find(a => a.Address.length === 44)?.Address;
+    for (let i = 0; i < 3; i++) {
+      try {
+        const query = `
+          query {
+            Solana(network: solana) {
+              Instructions(
+                where: {
+                  Instruction: { Program: { Address: { is: "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P" } }, Method: { is: "create" } }
+                  Transaction: { Signer: { is: "${DEV_WALLET}" } }
+                }
+                orderBy: { descendingByField: "Block_Time" }
+                limit: { count: 1 }
+              ) {
+                Instruction { Accounts { Address } }
+              }
+            }
+          }
+        `;
+
+        const response = await fetch('https://graphql.bitquery.io', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-API-KEY': BITQUERY_API_KEY },
+          body: JSON.stringify({ query }),
+          timeout: 8000
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+
+        if (data.data?.Solana?.Instructions?.[0]?.Instruction?.Accounts) {
+          mint = data.data.Solana.Instructions[0].Instruction.Accounts.find(a => a.Address.length === 44)?.Address;
+          break;
+        }
+      } catch (err) {
+        console.error(`BitQuery attempt ${i + 1} failed:`, err.message);
+        if (i === 2) throw err;
+        await new Promise(r => setTimeout(r, 1000));
+      }
     }
 
     if (!mint) {
@@ -49,20 +75,22 @@ module.exports = async (req, res) => {
 
     liveData.lastMint = mint;
 
-    // 2. DexScreener con retry (3 intentos, 1s delay)
+    // 3. DexScreener con retry
     let dexData = null;
-    for (let attempt = 1; attempt <= 3; attempt++) {
+    for (let i = 0; i < 3; i++) {
       try {
-        const dexRes = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`);
-        dexData = await dexRes.json();
-        if (dexData.pairs && dexData.pairs.length > 0) break;
+        const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`, { timeout: 8000 });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        dexData = await response.json();
+        if (dexData.pairs?.length > 0) break;
       } catch (err) {
-        console.error(`DexScreener attempt ${attempt} failed:`, err.message);
-        if (attempt < 3) await new Promise(r => setTimeout(r, 1000)); // 1s delay
+        console.error(`DexScreener attempt ${i + 1} failed:`, err.message);
+        if (i === 2) break;
+        await new Promise(r => setTimeout(r, 1000));
       }
     }
 
-    if (dexData && dexData.pairs && dexData.pairs.length > 0) {
+    if (dexData?.pairs?.[0]) {
       const pair = dexData.pairs[0];
       const price = parseFloat(pair.priceUsd || 0);
       const fdv = parseFloat(pair.fdv || 0);
@@ -77,8 +105,12 @@ module.exports = async (req, res) => {
     } else {
       liveData.marketCap = `Mint: ${mint.slice(0,8)}...`;
     }
+
+    // 4. Guardar en cache
+    cache = { mint, data: liveData, timestamp: Date.now() };
+
   } catch (err) {
-    console.error('Overall error:', err);
+    console.error('Final error:', err);
     liveData.marketCap = 'API Error';
   }
 
