@@ -18,19 +18,19 @@ module.exports = async (req, res) => {
       pool: 'auto'
     };
 
-    const response = await fetch(`https://pumpportal.fun/api/trade?api-key=${PUMP_API_KEY}&cluster=mainnet`, {
+    const r = await fetch(`https://pumpportal.fun/api/trade?api-key=${PUMP_API_KEY}&cluster=mainnet`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(trade)
     });
-    const result = await response.json();
+    const result = await r.json();
     if (result.error) throw new Error(result.error);
 
     const id = Date.now().toString(36);
     fs.writeFileSync(`/tmp/${id}.json`, JSON.stringify({ id, ascii, tx: result.signature }));
 
     res.json({ success: true, downloadUrl: `/api/download?id=${id}` });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 };

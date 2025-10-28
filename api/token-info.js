@@ -6,16 +6,14 @@ module.exports = async (req, res) => {
   if (!TOKEN_MINT) return res.json({ ticker: 'ERROR', marketCap: 'Add TOKEN_MINT', price: '$0.00000000' });
 
   try {
-    const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${TOKEN_MINT}`);
-    const data = await response.json();
-
-    if (data.pairs && data.pairs.length > 0) {
-      const pair = data.pairs[0];
-      const price = parseFloat(pair.priceUsd || 0);
-      const fdv = parseFloat(pair.fdv || 0);
-
+    const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${TOKEN_MINT}`);
+    const d = await r.json();
+    if (d.pairs?.[0]) {
+      const p = d.pairs[0];
+      const price = parseFloat(p.priceUsd || 0);
+      const fdv = parseFloat(p.fdv || 0);
       res.json({
-        ticker: pair.baseToken.symbol || 'TOKEN',
+        ticker: p.baseToken.symbol || 'TOKEN',
         price: `$${price.toFixed(8)}`,
         marketCap: fdv > 0 ? `$${Math.round(fdv)}` : 'N/A'
       });
