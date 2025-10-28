@@ -4,8 +4,8 @@ const Redis = require('@upstash/redis');
 const { PUMP_API_KEY, SOL_TO_SPEND, TOKEN_MINT } = require('../config');
 
 const redis = new Redis({
-  url: process.env.KV_URL,
-  token: process.env.KV_REST_API_TOKEN
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN
 });
 
 module.exports = async (req, res) => {
@@ -33,7 +33,6 @@ module.exports = async (req, res) => {
     const id = Date.now().toString(36);
     const entry = { id, ascii, wallet, tx: result.signature, mint: TOKEN_MINT };
 
-    // GUARDA EN UPSTASH
     await redis.set(`ascii:${id}`, JSON.stringify(entry));
 
     res.json({ success: true, downloadUrl: `/api/download?id=${id}&format=jpg` });
