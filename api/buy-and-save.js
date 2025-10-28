@@ -7,7 +7,7 @@ const { PUMP_API_KEY, SOL_TO_SPEND, TOKEN_MINT } = require('../config');
 module.exports = async (req, res) => {
   const { ascii, wallet } = req.body;
   if (!ascii || !wallet || !TOKEN_MINT) {
-    return res.status(400).json({ error: 'Missing data or TOKEN_MINT' });
+    return res.status(400).json({ error: 'Missing data' });
   }
 
   try {
