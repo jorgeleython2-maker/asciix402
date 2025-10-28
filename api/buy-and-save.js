@@ -2,25 +2,17 @@
 const fetch = require('node-fetch');
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
-const { PUMP_API_KEY, DEV_WALLET, SOL_TO_SPEND } = require('../config');
+const { PUMP_API_KEY, TOKEN_MINT, SOL_TO_SPEND, DEV_WALLET } = require('../config');
 
 module.exports = async (req, res) => {
   const { ascii, wallet } = req.body;
   if (!ascii || !wallet) return res.status(400).json({ error: 'Missing data' });
 
   try {
-    // 1. Detectar el token más reciente del dev
-    const pumpRes = await fetch(`https://pumpportal.fun/api/data/creator-tokens?creator=${DEV_WALLET}`);
-    const tokens = await pumpRes.json();
-    if (!tokens || tokens.length === 0) throw new Error('No token found for this wallet');
-
-    const mint = tokens[0].mint;
-
-    // 2. Comprar
     const url = `https://pumpportal.fun/api/trade?api-key=${PUMP_API_KEY}&cluster=mainnet`;
     const trade = {
       action: 'buy',
-      mint,
+      mint: TOKEN_MINT,
       amount: Math.floor(SOL_TO_SPEND * 1e9),
       denominatedInSol: 'true',
       slippage: 20,
@@ -32,13 +24,12 @@ module.exports = async (req, res) => {
     const result = await response.json();
     if (result.error) throw new Error(result.error);
 
-    // 3. Guardar
     const adapter = new FileSync('/tmp/db.json');
     const db = low(adapter);
     db.defaults({ ascii: [] }).write();
 
     const id = Date.now().toString(36);
-    db.get('ascii').push({ id, ascii, wallet, tx: result.signature, devWallet: DEV_WALLET, mint }).write();
+    db.get('ascii').push({ id, ascii, wallet, tx: result.signature, devWallet: DEV_WALLET, mint: TOKEN_MINT }).write();
 
     res.json({ success: true, downloadUrl: `/api/download?id=${id}` });
   } catch (err) {
