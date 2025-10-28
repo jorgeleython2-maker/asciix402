@@ -1,7 +1,7 @@
 // api/buy-and-save.js
 const fetch = require('node-fetch');
 const fs = require('fs');
-const { PUMP_API_KEY, SOL_TO_SPEND, TOKEN_MINT, RPC_URL } = require('../config');
+const { PUMP_API_KEY, SOL_TO_SPEND, TOKEN_MINT } = require('../config');
 
 module.exports = async (req, res) => {
   const { ascii, wallet } = req.body;
@@ -32,13 +32,13 @@ module.exports = async (req, res) => {
     const result = await response.json();
     if (result.error) throw new Error(result.error);
 
-    const txBase64 = result.tx; // TX en base64
+    const txBase64 = result.tx;
     const id = Date.now().toString(36);
 
-    // 2. Guardar ASCII + TX
+    // 2. Guardar TX + ASCII (para después de firma)
     fs.writeFileSync(`/tmp/${id}.json`, JSON.stringify({ id, ascii, tx: txBase64, wallet }));
 
-    res.json({ success: true, txBase64, id, downloadUrl: `/api/download?id=${id}` });
+    res.json({ success: true, txBase64, id });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

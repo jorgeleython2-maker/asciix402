@@ -77,7 +77,7 @@
 
     // === CONECTAR PHANTOM ===
     connectBtn.onclick = async () => {
-      if (window.solana && window.solana.isPhantom) {
+      if (window.solana?.isPhantom) {
         provider = window.solana;
         try {
           await provider.connect();
@@ -90,7 +90,7 @@
           alert('Connection failed: ' + err.message);
         }
       } else {
-        alert('Install Phantom Wallet: https://phantom.app');
+        alert('Install Phantom: https://phantom.app');
       }
     };
 
@@ -116,7 +116,7 @@
       }
     }
 
-    // === COMPRAR + FIRMAR + ENVIAR TX ===
+    // === COMPRAR + FIRMAR + ENVIAR TX + DESCARGA TXT ===
     buyBtn.onclick = async () => {
       if (!wallet) return alert('Connect wallet first');
       const ascii = asciiInput.value.trim();
@@ -126,7 +126,7 @@
       buyBtn.textContent = 'Generating TX...';
 
       try {
-        // 1. Generar TX en el backend
+        // 1. Generar TX en backend
         const res = await fetch('/api/buy-and-save', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -166,9 +166,9 @@
         `;
         loadGallery();
 
-        // 6. Descargar JPG
+        // 6. Descargar TXT
         setTimeout(() => {
-          location.href = data.downloadUrl + '&format=jpg';
+          location.href = `/api/download?id=${data.id}&format=txt`;
         }, 1500);
 
       } catch (err) {
