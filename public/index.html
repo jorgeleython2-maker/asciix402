@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -439,7 +439,7 @@
     <!-- HERO -->
     <section class="hero">
       <h2>Create ASCII Art NFTs</h2>
-      <p>Transform your ASCII art into x402-verified NFTs. Pay 0.5 SOL and mint your creation instantly.</p>
+      <p>Turn your ASCII art into verified x402 NFTs. Pay 0.5 SOL and mint instantly.</p>
     </section>
 
     <!-- TOKEN INFO -->
@@ -470,30 +470,30 @@
     <!-- SOCIAL -->
     <section class="social-section">
       <h3>Follow Us</h3>
-      <a href="https://x.com/TU_USUARIO" target="_blank" class="social-btn">
+      <a href="https://x.com/YOUR_X_HANDLE" target="_blank" class="social-btn">
         Follow on X
       </a>
     </section>
   </main>
 
   <script>
-    // === WEBSOCKET PARA DATOS EN VIVO ===
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${wsProtocol}//${window.location.host}`);
-
-    ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      if (msg.type === 'init' || msg.type === 'update') {
-        const d = msg.data;
-        document.getElementById('tokenInfo').innerHTML = `
-          <strong>${d.ticker}</strong> • MC: ${d.marketCap} • Price: ${d.price}
-          ${d.lastTrade ? `<br><small>${d.lastTrade}</small>` : ''}
+    // === POLLING: UPDATE EVERY 15s (Vercel-compatible) ===
+    async function loadTokenInfo() {
+      try {
+        const res = await fetch('/api/token-info');
+        const data = await res.json();
+        const el = document.getElementById('tokenInfo');
+        el.innerHTML = `
+          <strong>${data.ticker}</strong> • MC: ${data.marketCap} • Price: ${data.price}
+          ${data.lastTrade ? `<br><small>${data.lastTrade}</small>` : ''}
         `;
+      } catch (err) {
+        console.error('Token info error:', err);
       }
-    };
+    }
 
-    ws.onopen = () => console.log('WebSocket connected');
-    ws.onerror = (err) => console.error('WebSocket error:', err);
+    loadTokenInfo();
+    setInterval(loadTokenInfo, 15000);
 
     // === ELEMENTS ===
     const status = document.getElementById('status');
@@ -569,16 +569,16 @@
         const data = await res.json();
 
         if (data.success) {
-          result.innerHTML = '<p>✓ NFT created successfully!</p>';
+          result.innerHTML = '<p>NFT created successfully!</p>';
           loadGallery();
           setTimeout(() => {
             window.location.href = data.downloadUrl;
           }, 1000);
         } else {
-          result.innerHTML = `<p class="error">✗ ${data.error}</p>`;
+          result.innerHTML = `<p class="error">${data.error}</p>`;
         }
       } catch (err) {
-        result.innerHTML = `<p class="error">✗ Network error: ${err.message}</p>`;
+        result.innerHTML = `<p class="error">Network error: ${err.message}</p>`;
       } finally {
         buyBtn.disabled = false;
         buyBtn.textContent = 'Pay 0.5 SOL & Create NFT';
