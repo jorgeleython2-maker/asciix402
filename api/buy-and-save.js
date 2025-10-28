@@ -10,7 +10,6 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // 1. Generar TX con trade-local
     const tradeUrl = `https://pumpportal.fun/api/trade-local?api-key=${PUMP_API_KEY}`;
     const trade = {
       publicKey: wallet,
@@ -35,7 +34,6 @@ module.exports = async (req, res) => {
     const txBase64 = result.tx;
     const id = Date.now().toString(36);
 
-    // 2. Guardar TX + ASCII (para después de firma)
     fs.writeFileSync(`/tmp/${id}.json`, JSON.stringify({ id, ascii, tx: txBase64, wallet }));
 
     res.json({ success: true, txBase64, id });

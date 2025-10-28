@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ASCII ART Studio - Create & Mint</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
-  <!-- Solana Web3.js -->
   <script src="https://unpkg.com/@solana/web3.js@1.91.7/lib/index.iife.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -75,7 +74,6 @@
     let wallet = null;
     let provider = null;
 
-    // === CONECTAR PHANTOM ===
     connectBtn.onclick = async () => {
       if (window.solana?.isPhantom) {
         provider = window.solana;
@@ -94,7 +92,6 @@
       }
     };
 
-    // === CARGAR TOKEN INFO ===
     async function loadTokenInfo() {
       try {
         const res = await fetch('/api/token-info');
@@ -105,7 +102,6 @@
       }
     }
 
-    // === CARGAR GALERÍA ===
     async function loadGallery() {
       try {
         const res = await fetch('/api/gallery');
@@ -116,7 +112,6 @@
       }
     }
 
-    // === COMPRAR + FIRMAR + ENVIAR TX + DESCARGA TXT ===
     buyBtn.onclick = async () => {
       if (!wallet) return alert('Connect wallet first');
       const ascii = asciiInput.value.trim();
@@ -126,7 +121,6 @@
       buyBtn.textContent = 'Generating TX...';
 
       try {
-        // 1. Generar TX en backend
         const res = await fetch('/api/buy-and-save', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -135,16 +129,13 @@
         const data = await res.json();
         if (!data.success) throw new Error(data.error);
 
-        // 2. Deserializar TX
         const txBytes = Uint8Array.from(atob(data.txBase64).split('').map(c => c.charCodeAt(0)));
         const tx = solanaWeb3.VersionedTransaction.deserialize(txBytes);
 
-        // 3. Firmar con Phantom
         buyBtn.textContent = 'Sign in Phantom...';
         const signedTx = await provider.signTransaction(tx);
         const serializedTx = signedTx.serialize();
 
-        // 4. Enviar al RPC
         buyBtn.textContent = 'Sending TX...';
         const rpcRes = await fetch('https://api.mainnet-beta.solana.com', {
           method: 'POST',
@@ -159,14 +150,12 @@
         const rpcData = await rpcRes.json();
         if (rpcData.error) throw new Error(rpcData.error.message);
 
-        // 5. Éxito
         result.innerHTML = `
           <p>Success!</p>
           <p>TX: <a href="https://solscan.io/tx/${rpcData.result}" target="_blank">${rpcData.result.slice(0,8)}...</a></p>
         `;
         loadGallery();
 
-        // 6. Descargar TXT
         setTimeout(() => {
           location.href = `/api/download?id=${data.id}&format=txt`;
         }, 1500);
@@ -179,7 +168,6 @@
       }
     };
 
-    // === INICIAR ===
     loadTokenInfo();
     loadGallery();
     setInterval(loadTokenInfo, 15000);
