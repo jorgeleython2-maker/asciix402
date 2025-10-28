@@ -2,53 +2,19 @@
 const fetch = require('node-fetch');
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
-const { PUMP_API_KEY, SOL_TO_SPEND, DEV_WALLET, BITQUERY_API_KEY } = require('../config');
+const { PUMP_API_KEY, SOL_TO_SPEND, TOKEN_MINT } = require('../config');
 
 module.exports = async (req, res) => {
   const { ascii, wallet } = req.body;
-  if (!ascii || !wallet) return res.status(400).json({ error: 'Missing data' });
-
-  let mint = null;
-
-  try {
-    const query = `
-      query {
-        Solana(network: solana) {
-          Instructions(
-            where: {
-              Instruction: { Program: { Address: { is: "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P" } }, Method: { is: "create" } }
-              Transaction: { Signer: { is: "${DEV_WALLET}" } }
-            }
-            orderBy: { descendingByField: "Block_Time" }
-            limit: { count: 1 }
-          ) {
-            Instruction { Accounts { Address } }
-          }
-        }
-      }
-    `;
-
-    const response = await fetch('https://graphql.bitquery.io', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-API-KEY': BITQUERY_API_KEY },
-      body: JSON.stringify({ query })
-    });
-    const data = await response.json();
-
-    if (data.data?.Solana?.Instructions?.[0]?.Instruction?.Accounts) {
-      mint = data.data.Solana.Instructions[0].Instruction.Accounts.find(a => a.Address.length === 44)?.Address;
-    }
-  } catch (err) {
-    console.error('Mint detection error:', err);
+  if (!ascii || !wallet || !TOKEN_MINT) {
+    return res.status(400).json({ error: 'Missing data or TOKEN_MINT' });
   }
-
-  if (!mint) return res.status(500).json({ error: 'No token mint found' });
 
   try {
     const tradeUrl = `https://pumpportal.fun/api/trade?api-key=${PUMP_API_KEY}&cluster=mainnet`;
     const trade = {
       action: 'buy',
-      mint,
+      mint: TOKEN_MINT,
       amount: Math.floor(SOL_TO_SPEND * 1e9),
       denominatedInSol: 'true',
       slippage: 20,
@@ -64,7 +30,7 @@ module.exports = async (req, res) => {
     const db = low(adapter);
     db.defaults({ ascii: [] }).write();
     const id = Date.now().toString(36);
-    db.get('ascii').push({ id, ascii, wallet, tx: result.signature, devWallet: DEV_WALLET, mint }).write();
+    db.get('ascii').push({ id, ascii, wallet, tx: result.signature, mint: TOKEN_MINT }).write();
 
     res.json({ success: true, downloadUrl: `/api/download?id=${id}` });
   } catch (err) {
