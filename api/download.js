@@ -1,22 +1,16 @@
-// api/download.js
-const Redis = require('@upstash/redis');
+const fs = require('fs');
 const { createCanvas } = require('canvas');
 
-const redis = new Redis({
-  url: process.env.KV_URL,
-  token: process.env.KV_REST_API_TOKEN
-});
-
 module.exports = async (req, res) => {
-  const { id, format } = req.query;
+  const { id } = req.query;
 
   try {
-    const entryJson = await redis.get(`ascii:${id}`);
-    if (!entryJson) return res.status(404).send('Not found');
+    const entryFile = `/tmp/${id}.json`;
+    if (!fs.existsSync(entryFile)) return res.status(404).send('Not found');
 
-    const entry = JSON.parse(entryJson);
+    const entry = JSON.parse(fs.readFileSync(entryFile, 'utf8'));
 
-    if (format === 'jpg') {
+    if (req.query.format === 'jpg') {
       const canvas = createCanvas(800, 600);
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = 'black';
@@ -31,10 +25,8 @@ module.exports = async (req, res) => {
       res.send(buffer);
     } else {
       res.send(`
-        <pre style="background:#000;color:#0f0;font-family:monospace;padding:20px;">
-${entry.ascii.replace(/</g, '&lt;')}
-        </pre>
-        <a href="?format=jpg" download>Download JPG</a>
+        <pre style="background:#000;color:#0f0;font-family:monospace;padding:20px;">${entry.ascii}</pre>
+        <a href="/api/download?id=${id}&format=jpg" download>Download JPG</a>
       `);
     }
   } catch (err) {

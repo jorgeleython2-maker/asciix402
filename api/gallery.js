@@ -1,12 +1,6 @@
-// api/gallery.js
-const { kv } = require('@vercel/kv');
-
+const fs = require('fs');
 module.exports = async (req, res) => {
-  try {
-    const entries = await kv.lrange('ascii', 0, -1);
-    const arts = entries.slice(-10).map(e => JSON.parse(e)); // Últimos 10
-    res.json(arts);
-  } catch (err) {
-    res.json([]);
-  }
+  const dir = '/tmp';
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.json')).slice(-10).map(f => JSON.parse(fs.readFileSync(dir + '/' + f)));
+  res.json(files);
 };

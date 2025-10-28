@@ -1,10 +1,9 @@
-// api/token-info.js
 const fetch = require('node-fetch');
 const { TOKEN_MINT } = require('../config');
 
 module.exports = async (req, res) => {
   if (!TOKEN_MINT) {
-    return res.json({ ticker: 'ERROR', marketCap: 'Add TOKEN_MINT', price: '$0.00000000' });
+    return res.json({ ticker: 'ERROR', marketCap: 'Add TOKEN_MINT in config.js', price: '$0.00000000' });
   }
 
   try {
