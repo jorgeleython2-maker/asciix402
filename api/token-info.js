@@ -4,7 +4,7 @@ const { TOKEN_MINT } = require('../config');
 
 module.exports = async (req, res) => {
   if (!TOKEN_MINT) {
-    return res.json({ ticker: 'ERROR', marketCap: 'Add TOKEN_MINT in config.js', price: '$0.00000000' });
+    return res.json({ ticker: 'ERROR', marketCap: 'Add TOKEN_MINT', price: '$0.00000000' });
   }
 
   try {
@@ -19,7 +19,7 @@ module.exports = async (req, res) => {
       res.json({
         ticker: pair.baseToken.symbol || 'TOKEN',
         price: `$${price.toFixed(8)}`,
-        marketCap: fdv > 0 ? (fdv > 1e6 ? `$${Math.round(fdv / 1e6)}M` : `$${Math.round(fdv)}`) : 'N/A',
+        marketCap: fdv > 0 ? `$${Math.round(fdv)}` : 'N/A',
         volume24h: pair.volume?.h24 ? `$${Math.round(pair.volume.h24)}` : '$0'
       });
     } else {
